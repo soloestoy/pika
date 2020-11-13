@@ -9,11 +9,12 @@
 
 #include "slash/include/xdebug.h"
 
-PikaSender::PikaSender(std::string ip, int64_t port, std::string password):
+PikaSender::PikaSender(std::string ip, int64_t port, std::string dbid, std::string password):
   cli_(NULL),
   signal_(&keys_mutex_),
   ip_(ip),
   port_(port),
+  dbid_(dbid),
   password_(password),
   should_exit_(false),
   elements_(0)
@@ -105,6 +106,34 @@ void PikaSender::ConnectRedis() {
           }
         }
       }
+
+      pink::RedisCmdArgsType argv, resp;
+      std::string cmd;
+
+      argv.push_back("SELECT");
+      argv.push_back(dbid_);
+      pink::SerializeRedisCommand(argv, &cmd);
+      slash::Status s = cli_->Send(&cmd);
+
+      if (s.ok()) {
+        s = cli_->Recv(&resp);
+        if (resp[0] == "OK") {
+        } else {
+          LOG(FATAL) << "Connect to redis(" << ip_ << ":" << port_ << ") Invalid dbid";
+          cli_->Close();
+          delete cli_;
+          cli_ = NULL;
+          should_exit_ = true;
+          return;
+        }
+      } else {
+        LOG(WARNING) << "send SELECT failed: " << s.ToString();
+        cli_->Close();
+        delete cli_;
+        cli_ = NULL;
+        continue;
+      }
+
     }
   }
 }

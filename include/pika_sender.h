@@ -13,7 +13,7 @@
 
 class PikaSender : public pink::Thread {
 public:
-  PikaSender(std::string ip, int64_t port, std::string password);
+  PikaSender(std::string ip, int64_t port, std::string dbid, std::string password);
   virtual ~PikaSender();
   void LoadKey(const std::string &cmd);
   void Stop();
@@ -31,6 +31,7 @@ private:
   std::queue<std::string> keys_queue_;
   std::string ip_;
   int port_;
+  std::string dbid_;
   std::string password_;
   std::atomic<bool> should_exit_;
   int64_t elements_;

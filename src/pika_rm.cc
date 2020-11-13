@@ -1345,13 +1345,12 @@ Status PikaReplicaManager::SendPartitionTrySyncRequest(
   return status;
 }
 
-static bool already_dbsync = false;
 Status PikaReplicaManager::SendPartitionDBSyncRequest(
         const std::string& table_name, size_t partition_id) {
-  if (!already_dbsync) {
-    already_dbsync = true;
+  if (!g_pika_server->IsDBSyncAlready(table_name)) {
+    g_pika_server->SetDBSyncAlready(table_name);
   } else {
-    LOG(FATAL) << "we only allow one DBSync action to avoid passing duplicate commands to target Redis multiple times";
+    LOG(FATAL) << "one table " <<table_name<<" only allow one DBSync action to avoid passing duplicate commands to target Redis multiple times";
   }
 
   BinlogOffset boffset;

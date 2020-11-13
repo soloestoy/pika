@@ -241,9 +241,9 @@ void PikaReplBgWorker::HandleBGWorkerWriteDB(void* arg) {
   }
   std::shared_ptr<Partition> partition = g_pika_server->GetTablePartitionById(table_name, partition_id);
 
-  if (strcmp(table_name.data(), "db0") || partition_id != 0) {
+  if (partition_id != 0) {
     LOG(FATAL) << "table_name: " << table_name <<  ", partition_id: "
-      << std::to_string(partition_id) << ", but only single DB data is support transfer";
+      << std::to_string(partition_id) << ", but only classic DB data is support transfer";
     return;
   }
 
@@ -266,13 +266,13 @@ void PikaReplBgWorker::HandleBGWorkerWriteDB(void* arg) {
 
       std::string command;
       pink::SerializeRedisCommand(tmp_argv, &command);
-      g_pika_server->SendRedisCommand(command, key);
+      g_pika_server->SendRedisCommand(table_name, command, key);
     }
   } else {
     std::string key = argv->size() > 1 ? (*argv)[1] : "";
     std::string command;
     pink::SerializeRedisCommand(*argv, &command);
-    g_pika_server->SendRedisCommand(command, key);
+    g_pika_server->SendRedisCommand(table_name, command, key);
   }
 
   // Add read lock for no suspend command

@@ -314,7 +314,7 @@ bool Partition::TryUpdateMasterOffset() {
   }
 
   // Retransmit Data to target redis
-  g_pika_server->RetransmitData(dbsync_path_);
+  g_pika_server->RetransmitData(dbsync_path_, partition_name_.substr(2));
 
   slash::DeleteFile(info_path);
   if (!ChangeDb(dbsync_path_)) {

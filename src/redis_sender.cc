@@ -15,13 +15,14 @@
 
 static time_t kCheckDiff = 1;
 
-RedisSender::RedisSender(int id, std::string ip, int64_t port, std::string password):
+RedisSender::RedisSender(int id, std::string ip, int64_t port, std::string dbid, std::string password):
   id_(id),
   cli_(NULL),
   rsignal_(&commands_mutex_),
   wsignal_(&commands_mutex_),
   ip_(ip),
   port_(port),
+  dbid_(dbid),
   password_(password),
   should_exit_(false),
   cnt_(0),
@@ -107,6 +108,34 @@ void RedisSender::ConnectRedis() {
           }
         }
       }
+
+      pink::RedisCmdArgsType argv, resp;
+      std::string cmd;
+
+      argv.push_back("SELECT");
+      argv.push_back(dbid_);
+      pink::SerializeRedisCommand(argv, &cmd);
+      slash::Status s = cli_->Send(&cmd);
+
+      if (s.ok()) {
+        s = cli_->Recv(&resp);
+        if (resp[0] == "OK") {
+        } else {
+          LOG(FATAL) << "Connect to redis(" << ip_ << ":" << port_ << ") Invalid dbid";
+          cli_->Close();
+          delete cli_;
+          cli_ = NULL;
+          should_exit_ = true;
+          return;
+        }
+      } else {
+        LOG(WARNING) << "send SELECT failed: " << s.ToString();
+        cli_->Close();
+        delete cli_;
+        cli_ = NULL;
+        continue;
+      }
+
     }
   }
 }

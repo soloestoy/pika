@@ -13,7 +13,7 @@
 
 class RedisSender : public pink::Thread {
  public:
-  RedisSender(int id, std::string ip, int64_t port, std::string password);
+  RedisSender(int id, std::string ip, int64_t port, std::string dbid, std::string password);
   virtual ~RedisSender();
   void Stop(void);
   int64_t elements() {
@@ -35,6 +35,7 @@ class RedisSender : public pink::Thread {
   std::queue<std::string> commands_queue_;
   std::string ip_;
   int port_;
+  std::string dbid_;
   std::string password_;
   bool should_exit_;
   int32_t cnt_;

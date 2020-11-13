@@ -143,6 +143,9 @@ class PikaServer {
   bool IsTableBinlogIoError(const std::string& table_name);
   Status DoSameThingSpecificTable(const TaskType& type, const std::set<std::string>& tables = {});
 
+  bool IsDBSyncAlready(const std::string& table_name);
+  void SetDBSyncAlready(const std::string& table_name);
+
   /*
    * Partition use
    */
@@ -298,8 +301,8 @@ class PikaServer {
   /*
    * migrate used
    */
-  int SendRedisCommand(const std::string& command, const std::string& key);
-  void RetransmitData(const std::string& path);
+  int SendRedisCommand(const std::string& table_name, const std::string& command, const std::string& key);
+  void RetransmitData(const std::string& path, std::string dbid);
 
 
   friend class Cmd;
@@ -404,7 +407,8 @@ class PikaServer {
   /*
    *
    */
-  std::vector<RedisSender*> redis_senders_;
+  std::map<std::string,std::vector<RedisSender*>> redis_senders_;
+  std::map<std::string,bool> already_dbsync_;
 
   /*
    * Slowlog used
